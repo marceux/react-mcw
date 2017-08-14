@@ -162,6 +162,7 @@ var Drawer = function (_PureComponent) {
     // Bind Methods
     _this.setRootRef = _this.setRootRef.bind(_this);
     _this.setDrawerRef = _this.setDrawerRef.bind(_this);
+    _this.renderHeader = _this.renderHeader.bind(_this);
     return _this;
   }
 
@@ -208,6 +209,40 @@ var Drawer = function (_PureComponent) {
       this.drawerRef = node;
     }
   }, {
+    key: 'renderHeader',
+    value: function renderHeader() {
+      var _props = this.props,
+          header = _props.header,
+          spacer = _props.spacer;
+
+
+      if (!header && !spacer) {
+        return null;
+      }
+
+      // If we have a header or a spacer, then return either with the appropriate wrappers
+      if (header) {
+        return _react2.default.createElement(
+          'header',
+          { className: 'mdc-temporary-drawer__header' },
+          _react2.default.createElement(
+            'div',
+            { className: 'mdc-temporary-drawer__header-content' },
+            header
+          )
+        );
+      } else if (spacer) {
+        return _react2.default.createElement(
+          'div',
+          { className: 'mdc-permanent-drawer__toolbar-spacer' },
+          spacer
+        );
+      }
+
+      // A catch-all, just in case?
+      return null;
+    }
+  }, {
     key: 'render',
     value: function render() {
       var rootClasses = this.state.classes.toJS().join(' ');
@@ -218,15 +253,7 @@ var Drawer = function (_PureComponent) {
         _react2.default.createElement(
           'nav',
           { className: 'mdc-temporary-drawer__drawer', ref: this.setDrawerRef },
-          _react2.default.createElement(
-            'header',
-            { className: 'mdc-temporary-drawer__header' },
-            _react2.default.createElement(
-              'div',
-              { className: 'mdc-temporary-drawer__header-content' },
-              'Header'
-            )
-          ),
+          this.renderHeader(),
           _react2.default.createElement(
             'div',
             { className: 'mdc-temporary-drawer__content' },
