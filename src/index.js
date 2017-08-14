@@ -1,6 +1,5 @@
 // Components
-import Drawer from './Drawer';
+import PermanentDrawer from './Drawer/PermanentDrawer';
+import TemporaryDrawer from './Drawer/TemporaryDrawer';
 
-export {
-  Drawer,
-};
+export { PermanentDrawer, TemporaryDrawer };
