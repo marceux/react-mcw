@@ -85,6 +85,7 @@ class Drawer extends PureComponent {
     // Bind Methods
     this.setRootRef = this.setRootRef.bind(this);
     this.setDrawerRef = this.setDrawerRef.bind(this);
+    this.renderHeader = this.renderHeader.bind(this);
   }
 
   componentDidMount() {
@@ -123,17 +124,41 @@ class Drawer extends PureComponent {
     this.drawerRef = node;
   }
 
+  renderHeader() {
+    const { header, spacer } = this.props;
+
+    if (!header && !spacer) {
+      return null;
+    }
+
+    // If we have a header or a spacer, then return either with the appropriate wrappers
+    if (header) {
+      return (
+        <header className="mdc-temporary-drawer__header">
+          <div className="mdc-temporary-drawer__header-content">
+            {header}
+          </div>
+        </header>
+      );
+    } else if (spacer) {
+      return (
+        <div className="mdc-permanent-drawer__toolbar-spacer">
+          {spacer}
+        </div>
+      );
+    }
+
+    // A catch-all, just in case?
+    return null;
+  }
+
   render() {
     const rootClasses = this.state.classes.toJS().join(' ');
 
     return (
       <aside className={rootClasses} ref={this.setRootRef} >
         <nav className="mdc-temporary-drawer__drawer" ref={this.setDrawerRef} >
-          <header className="mdc-temporary-drawer__header">
-            <div className="mdc-temporary-drawer__header-content">
-              Header
-            </div>
-          </header>
+          {this.renderHeader()}
           <div className="mdc-temporary-drawer__content">
             <p>Testing</p>
           </div>

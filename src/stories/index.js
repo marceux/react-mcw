@@ -2,14 +2,35 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { withKnobs, boolean } from '@storybook/addon-knobs';
 
-import Drawer from '../Drawer';
+import PermanentDrawer from '../Drawer/PermanentDrawer';
+import TemporaryDrawer from '../Drawer/TemporaryDrawer';
 
-const stories = storiesOf('Drawer', module);
+storiesOf('PermanentDrawer', module)
+  .add('default view', () => (
+    <PermanentDrawer>
+      <p>Inside Drawer</p>
+    </PermanentDrawer>
+  ))
+  .add('with spacer', () => (
+    <PermanentDrawer toolbarSpacer={<p>Inside Spacer</p>} >
+      <p>Outside Spacer</p>
+    </PermanentDrawer>
+  ));
 
-stories.addDecorator(withKnobs);
-
-stories.add('default view', () => (
-  <div id="sandbox">
-    <Drawer open={boolean('Open', true)} />
-  </div>
-));
+storiesOf('TemporaryDrawer', module)
+  .addDecorator(withKnobs)
+  .add('default view', () => (
+    <TemporaryDrawer open={boolean('Open', true)} >
+      <p>Content</p>
+    </TemporaryDrawer>
+  ))
+  .add('with spacer', () => (
+    <TemporaryDrawer open={boolean('Open', true)} spacer={<p>Inside Spacer</p>} >
+      <p>Content</p>
+    </TemporaryDrawer>
+  ))
+  .add('with header', () => (
+    <TemporaryDrawer open={boolean('Open', true)} header={<p>Inside Header</p>} >
+      <p>Content</p>
+    </TemporaryDrawer>
+  ));
