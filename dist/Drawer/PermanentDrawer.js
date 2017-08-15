@@ -28,6 +28,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 require('@material/drawer/dist/mdc.drawer.css');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -41,15 +45,15 @@ var PermanentDrawer = function (_PureComponent) {
     // Bind Methods
     var _this = (0, _possibleConstructorReturn3.default)(this, (PermanentDrawer.__proto__ || (0, _getPrototypeOf2.default)(PermanentDrawer)).call(this, props));
 
-    _this.renderToolbarSpacer = _this.renderToolbarSpacer.bind(_this);
+    _this.renderSpacer = _this.renderSpacer.bind(_this);
     return _this;
   }
 
   (0, _createClass3.default)(PermanentDrawer, [{
-    key: 'renderToolbarSpacer',
-    value: function renderToolbarSpacer() {
+    key: 'renderSpacer',
+    value: function renderSpacer() {
       // If we don't have the toolbar spacer props, just return null
-      if (!this.props.toolbarSpacer) {
+      if (!this.props.spacer) {
         return null;
       }
 
@@ -57,7 +61,7 @@ var PermanentDrawer = function (_PureComponent) {
       return _react2.default.createElement(
         'div',
         { className: 'mdc-permanent-drawer__toolbar-spacer' },
-        this.props.toolbarSpacer
+        this.props.spacer
       );
     }
   }, {
@@ -66,7 +70,7 @@ var PermanentDrawer = function (_PureComponent) {
       return _react2.default.createElement(
         'nav',
         { className: 'mdc-permanent-drawer' },
-        this.renderToolbarSpacer(),
+        this.renderSpacer(),
         _react2.default.createElement(
           'div',
           { className: 'mdc-permanent-drawer__content' },
@@ -77,5 +81,13 @@ var PermanentDrawer = function (_PureComponent) {
   }]);
   return PermanentDrawer;
 }(_react.PureComponent);
+
+// CSS
+
+
+PermanentDrawer.propTypes = {
+  spacer: _propTypes2.default.node,
+  children: _propTypes2.default.node
+};
 
 exports.default = PermanentDrawer;

@@ -28,45 +28,36 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _immutable = require('immutable');
 
+var _emitEvent = require('../../utils/emitEvent');
+
+var _emitEvent2 = _interopRequireDefault(_emitEvent);
+
 var _mdc = require('@material/drawer/dist/mdc.drawer');
+
+var _constants = require('./constants');
 
 require('@material/drawer/dist/mdc.drawer.css');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var FOCUSABLE_ELEMENTS = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), ' + 'button:not([disabled]), iframe, object, embed, [tabindex], [contenteditable]';
+var TemporaryDrawer = function (_PureComponent) {
+  (0, _inherits3.default)(TemporaryDrawer, _PureComponent);
 
-var emitEvent = function emitEvent(el, evtType) {
-  var evt = void 0;
-
-  if (typeof window.CustomEvent === 'function') {
-    evt = new CustomEvent(evtType, {
-      detail: undefined,
-      bubbles: false
-    });
-  } else {
-    evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(evtType, false, false);
-  }
-
-  el.dispatchEvent(evt);
-};
-
-var Drawer = function (_PureComponent) {
-  (0, _inherits3.default)(Drawer, _PureComponent);
-
-  function Drawer(props) {
-    (0, _classCallCheck3.default)(this, Drawer);
+  function TemporaryDrawer(props) {
+    (0, _classCallCheck3.default)(this, TemporaryDrawer);
 
     // Default State
-    var _this = (0, _possibleConstructorReturn3.default)(this, (Drawer.__proto__ || (0, _getPrototypeOf2.default)(Drawer)).call(this, props));
+    var _this = (0, _possibleConstructorReturn3.default)(this, (TemporaryDrawer.__proto__ || (0, _getPrototypeOf2.default)(TemporaryDrawer)).call(this, props));
 
     _this.state = {
       classes: new _immutable.Set(['mdc-temporary-drawer']),
-      cssVars: new _immutable.Map(),
-      isOpen: Boolean(props.open)
+      cssVars: new _immutable.Map()
     };
 
     // Here we initialize a foundation class, passing it an adapter which tells it how to
@@ -99,10 +90,10 @@ var Drawer = function (_PureComponent) {
         return Boolean(_this.rootRef);
       },
       registerInteractionHandler: function registerInteractionHandler(evt, handler) {
-        return _this.rootRef.addEventListener(evt, handler);
+        _this.rootRef.addEventListener(evt, handler);
       },
       deregisterInteractionHandler: function deregisterInteractionHandler(evt, handler) {
-        return _this.rootRef.removeEventListener(evt, handler);
+        _this.rootRef.removeEventListener(evt, handler);
       },
       registerDrawerInteractionHandler: function registerDrawerInteractionHandler(evt, handler) {
         _this.drawerRef.addEventListener(evt, handler);
@@ -111,16 +102,16 @@ var Drawer = function (_PureComponent) {
         _this.drawerRef.removeEventListener(evt, handler);
       },
       registerTransitionEndHandler: function registerTransitionEndHandler(handler) {
-        return _this.drawerRef.addEventListener('transitionend', handler);
+        _this.drawerRef.addEventListener('transitionend', handler);
       },
       deregisterTransitionEndHandler: function deregisterTransitionEndHandler(handler) {
         _this.drawerRef.removeEventListener('transitionend', handler);
       },
       registerDocumentKeydownHandler: function registerDocumentKeydownHandler(handler) {
-        return document.addEventListener('keydown', handler);
+        document.addEventListener('keydown', handler);
       },
       deregisterDocumentKeydownHandler: function deregisterDocumentKeydownHandler(handler) {
-        return document.removeEventListener('keydown', handler);
+        document.removeEventListener('keydown', handler);
       },
       getDrawerWidth: function getDrawerWidth() {
         return _this.drawerRef.offsetWidth;
@@ -134,7 +125,7 @@ var Drawer = function (_PureComponent) {
         }
       },
       getFocusableElements: function getFocusableElements() {
-        return _this.drawerRef.querySelectorAll(FOCUSABLE_ELEMENTS);
+        return _this.drawerRef.querySelectorAll(_constants.FOCUSABLE_ELEMENTS);
       },
       saveElementTabState: function saveElementTabState(el) {
         return _mdc.util.saveElementTabState(el);
@@ -146,10 +137,18 @@ var Drawer = function (_PureComponent) {
         return el.setAttribute('tabindex', '-1');
       },
       notifyOpen: function notifyOpen() {
-        return emitEvent(_this.rootRef, 'MDCTemporaryDrawer:open');
+        (0, _emitEvent2.default)(_this.rootRef, 'MDCTemporaryDrawer:open');
+
+        if (props.openDrawer) {
+          props.openDrawer();
+        }
       },
       notifyClose: function notifyClose() {
-        return emitEvent(_this.rootRef, 'MDCTemporaryDrawer:close');
+        (0, _emitEvent2.default)(_this.rootRef, 'MDCTemporaryDrawer:close');
+
+        if (props.closeDrawer) {
+          props.closeDrawer();
+        }
       },
       isRtl: function isRtl() {
         return window.getComputedStyle(_this.rootRef).getPropertyValue('direction') === 'rtl';
@@ -166,32 +165,38 @@ var Drawer = function (_PureComponent) {
     return _this;
   }
 
-  (0, _createClass3.default)(Drawer, [{
+  (0, _createClass3.default)(TemporaryDrawer, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
       this.foundation.init();
 
-      if (this.state.isOpen) {
+      // If we have an open state, call the foundation's open method
+      if (this.props.isOpen) {
         this.foundation.open();
       }
     }
   }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
+      // If we have open state...
+      if (this.props.isOpen) {
+        if (this.props.closeDrawer) {
+          // call the provided closeDrawer prop
+          this.props.closeDrawer();
+        }
+
+        // call the foundaton's close method
+        this.foundation.close();
+      }
+
       this.foundation.destroy();
     }
   }, {
-    key: 'componentWillReceiveProps',
-    value: function componentWillReceiveProps(nextProps) {
-      if (this.props.open !== nextProps.open) {
-        this.setState({ isOpen: nextProps.open });
-      }
-    }
-  }, {
     key: 'componentDidUpdate',
-    value: function componentDidUpdate(prevProps, prevState) {
-      if (this.state.isOpen !== prevState.isOpen) {
-        if (this.state.isOpen) {
+    value: function componentDidUpdate(prevProps) {
+      // If the props has changed, then call the foundation methods
+      if (this.props.isOpen !== prevProps.isOpen) {
+        if (this.props.isOpen) {
           this.foundation.open();
         } else {
           this.foundation.close();
@@ -234,7 +239,7 @@ var Drawer = function (_PureComponent) {
       } else if (spacer) {
         return _react2.default.createElement(
           'div',
-          { className: 'mdc-permanent-drawer__toolbar-spacer' },
+          { className: 'mdc-temporary-drawer__toolbar-spacer' },
           spacer
         );
       }
@@ -245,6 +250,9 @@ var Drawer = function (_PureComponent) {
   }, {
     key: 'render',
     value: function render() {
+      var children = this.props.children;
+
+
       var rootClasses = this.state.classes.toJS().join(' ');
 
       return _react2.default.createElement(
@@ -257,17 +265,20 @@ var Drawer = function (_PureComponent) {
           _react2.default.createElement(
             'div',
             { className: 'mdc-temporary-drawer__content' },
-            _react2.default.createElement(
-              'p',
-              null,
-              'Testing'
-            )
+            children
           )
         )
       );
     }
   }]);
-  return Drawer;
+  return TemporaryDrawer;
 }(_react.PureComponent);
 
-exports.default = Drawer;
+TemporaryDrawer.propTypes = {
+  children: _propTypes2.default.node,
+  closeDrawer: _propTypes2.default.func,
+  isOpen: _propTypes2.default.bool,
+  openDrawer: _propTypes2.default.func
+};
+
+exports.default = TemporaryDrawer;
