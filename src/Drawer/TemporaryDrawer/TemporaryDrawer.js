@@ -1,31 +1,15 @@
 import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
+
 import { Set as ImmutableSet, Map as ImmutableMap } from 'immutable';
 
+import emitEvent from '../../utils/emitEvent';
 import { MDCTemporaryDrawerFoundation, util } from '@material/drawer/dist/mdc.drawer';
+import { FOCUSABLE_ELEMENTS } from './constants';
 
 import '@material/drawer/dist/mdc.drawer.css';
 
-const FOCUSABLE_ELEMENTS =
-  'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), ' +
-  'button:not([disabled]), iframe, object, embed, [tabindex], [contenteditable]';
-
-const emitEvent = (el, evtType) => {
-  let evt;
-
-  if (typeof window.CustomEvent === 'function') {
-    evt = new CustomEvent(evtType, {
-      detail: undefined,
-      bubbles: false,
-    });
-  } else {
-    evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(evtType, false, false);
-  }
-
-  el.dispatchEvent(evt);
-};
-
-class Drawer extends PureComponent {
+class TemporaryDrawer extends PureComponent {
   constructor(props) {
     super(props);
 
@@ -33,7 +17,6 @@ class Drawer extends PureComponent {
     this.state = {
       classes: new ImmutableSet(['mdc-temporary-drawer']),
       cssVars: new ImmutableMap(),
-      isOpen: Boolean(props.open),
     };
 
     // Here we initialize a foundation class, passing it an adapter which tells it how to
@@ -49,20 +32,30 @@ class Drawer extends PureComponent {
       addBodyClass: className => document.body.classList.add(className),
       removeBodyClass: className => document.body.classList.remove(className),
       hasNecessaryDom: () => Boolean(this.rootRef),
-      registerInteractionHandler: (evt, handler) => this.rootRef.addEventListener(evt, handler),
-      deregisterInteractionHandler: (evt, handler) => this.rootRef.removeEventListener(evt, handler),
+      registerInteractionHandler: (evt, handler) => {
+        this.rootRef.addEventListener(evt, handler);
+      },
+      deregisterInteractionHandler: (evt, handler) => {
+        this.rootRef.removeEventListener(evt, handler);
+      },
       registerDrawerInteractionHandler: (evt, handler) => {
         this.drawerRef.addEventListener(evt, handler);
       },
       deregisterDrawerInteractionHandler: (evt, handler) => {
         this.drawerRef.removeEventListener(evt, handler);
       },
-      registerTransitionEndHandler: (handler) => this.drawerRef.addEventListener('transitionend', handler),
+      registerTransitionEndHandler: (handler) => {
+        this.drawerRef.addEventListener('transitionend', handler);
+      },
       deregisterTransitionEndHandler: (handler) => {
         this.drawerRef.removeEventListener('transitionend', handler);
       },
-      registerDocumentKeydownHandler: (handler) => document.addEventListener('keydown', handler),
-      deregisterDocumentKeydownHandler: (handler) => document.removeEventListener('keydown', handler),
+      registerDocumentKeydownHandler: (handler) => {
+        document.addEventListener('keydown', handler);
+      },
+      deregisterDocumentKeydownHandler: (handler) => {
+        document.removeEventListener('keydown', handler);
+      },
       getDrawerWidth: () => this.drawerRef.offsetWidth,
       setTranslateX: (value) => this.drawerRef.style.setProperty(
         util.getTransformPropertyName(), value === null ? null : `translateX(${value}px)`
@@ -76,9 +69,23 @@ class Drawer extends PureComponent {
       saveElementTabState: (el) => util.saveElementTabState(el),
       restoreElementTabState: (el) => util.restoreElementTabState(el),
       makeElementUntabbable: (el) => el.setAttribute('tabindex', '-1'),
-      notifyOpen: () => emitEvent(this.rootRef, 'MDCTemporaryDrawer:open'),
-      notifyClose: () => emitEvent(this.rootRef, 'MDCTemporaryDrawer:close'),
-      isRtl: () => window.getComputedStyle(this.rootRef).getPropertyValue('direction') === 'rtl',
+      notifyOpen: () => {
+        emitEvent(this.rootRef, 'MDCTemporaryDrawer:open');
+
+        if (props.openDrawer) {
+          props.openDrawer();
+        }
+      },
+      notifyClose: () => {
+        emitEvent(this.rootRef, 'MDCTemporaryDrawer:close');
+
+        if (props.closeDrawer) {
+          props.closeDrawer();
+        }
+      },
+      isRtl: () => {
+        return window.getComputedStyle(this.rootRef).getPropertyValue('direction') === 'rtl';
+      },
       isDrawer: (el) => (el === this.drawerRef),
     });
 
@@ -91,24 +98,31 @@ class Drawer extends PureComponent {
   componentDidMount() {
     this.foundation.init();
 
-    if (this.state.isOpen) {
+    // If we have an open state, call the foundation's open method
+    if (this.props.isOpen) {
       this.foundation.open();
     }
   }
 
   componentWillUnmount() {
+    // If we have open state...
+    if (this.props.isOpen) {
+      if (this.props.closeDrawer) {
+        // call the provided closeDrawer prop
+        this.props.closeDrawer();
+      }
+
+      // call the foundaton's close method
+      this.foundation.close();
+    }
+
     this.foundation.destroy();
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.open !== nextProps.open) {
-      this.setState({ isOpen: nextProps.open });
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.isOpen !== prevState.isOpen) {
-      if (this.state.isOpen) {
+  componentDidUpdate(prevProps) {
+    // If the props has changed, then call the foundation methods
+    if (this.props.isOpen !== prevProps.isOpen) {
+      if (this.props.isOpen) {
         this.foundation.open();
       } else {
         this.foundation.close();
@@ -142,7 +156,7 @@ class Drawer extends PureComponent {
       );
     } else if (spacer) {
       return (
-        <div className="mdc-permanent-drawer__toolbar-spacer">
+        <div className="mdc-temporary-drawer__toolbar-spacer">
           {spacer}
         </div>
       );
@@ -153,14 +167,17 @@ class Drawer extends PureComponent {
   }
 
   render() {
+    const { children } = this.props;
+
     const rootClasses = this.state.classes.toJS().join(' ');
 
     return (
       <aside className={rootClasses} ref={this.setRootRef} >
         <nav className="mdc-temporary-drawer__drawer" ref={this.setDrawerRef} >
           {this.renderHeader()}
+
           <div className="mdc-temporary-drawer__content">
-            <p>Testing</p>
+            {children}
           </div>
         </nav>
       </aside>
@@ -168,4 +185,11 @@ class Drawer extends PureComponent {
   }
 }
 
-export default Drawer;
+TemporaryDrawer.propTypes = {
+  children: PropTypes.node,
+  closeDrawer: PropTypes.func,
+  isOpen: PropTypes.bool,
+  openDrawer: PropTypes.func,
+};
+
+export default TemporaryDrawer;

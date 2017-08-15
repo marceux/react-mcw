@@ -1,5 +1,7 @@
 import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 
+// CSS
 import '@material/drawer/dist/mdc.drawer.css';
 
 class PermanentDrawer extends PureComponent {
@@ -7,19 +9,19 @@ class PermanentDrawer extends PureComponent {
     super(props);
 
     // Bind Methods
-    this.renderToolbarSpacer = this.renderToolbarSpacer.bind(this);
+    this.renderSpacer = this.renderSpacer.bind(this);
   }
 
-  renderToolbarSpacer() {
+  renderSpacer() {
     // If we don't have the toolbar spacer props, just return null
-    if (!this.props.toolbarSpacer) {
+    if (!this.props.spacer) {
       return null;
     }
 
     // Else, return it with the appropriate div wrapper
     return (
       <div className="mdc-permanent-drawer__toolbar-spacer">
-        {this.props.toolbarSpacer}
+        {this.props.spacer}
       </div>
     );
   }
@@ -27,7 +29,7 @@ class PermanentDrawer extends PureComponent {
   render() {
     return (
       <nav className="mdc-permanent-drawer">
-        {this.renderToolbarSpacer()}
+        {this.renderSpacer()}
         <div className="mdc-permanent-drawer__content">
           {this.props.children}
         </div>
@@ -35,5 +37,10 @@ class PermanentDrawer extends PureComponent {
     );
   }
 }
+
+PermanentDrawer.propTypes = {
+  spacer: PropTypes.node,
+  children: PropTypes.node,
+};
 
 export default PermanentDrawer;
